@@ -100,16 +100,28 @@ public class PlayerController : MonoBehaviour {
 		// calculate how fast it should be moving
 		//Vector3 targetVelocity = new Vector3(CheckMoveDirection(XCI.GetAxis(XboxAxis.LeftStickX,controllerNumber),transform.right) * strafeSpeed, 0,CheckMoveDirection(XCI.GetAxis(XboxAxis.LeftStickY,controllerNumber),transform.forward)* forwardAndBackSpeed);
 		Vector3 targetVelocity = new Vector3(XCI.GetAxis(XboxAxis.LeftStickX,controllerNumber) * strafeSpeed, 0, XCI.GetAxis(XboxAxis.LeftStickY,controllerNumber) * forwardAndBackSpeed);
-		targetVelocity = transform.TransformDirection(targetVelocity);
+
+        /////
+        ///// Hacked in keyboard movement for both players (at the same time)
+        /////
+        Vector3 targetVelocityHack = new Vector3(Input.GetAxis("Horizontal") * strafeSpeed, 0, Input.GetAxis("Vertical") * forwardAndBackSpeed);
+        /////
+        ///// Hacked in keyboard movement for both players (at the same time) --> + targetVelocityHack
+        /////
+        targetVelocity = transform.TransformDirection(targetVelocity + targetVelocityHack);
 		
 		// apply a force that attempts to reach our target velocity
 		Vector3 velocity = GetComponent<Rigidbody>().velocity;
 		Vector3 velocityChange = (targetVelocity - velocity);
 		velocityChange.y = 0;
 		GetComponent<Rigidbody>().AddForce(velocityChange, ForceMode.VelocityChange);
-		
-		// jump
-		if (canJump && isGrounded && XCI.GetButton(XboxButton.A,controllerNumber)) {
+
+        // jump
+
+        /////
+        ///// Hacked in keyboard movement for both players (at the same time) --> ||Input.GetKeyDown(KeyCode.Space))
+        /////
+        if (canJump && isGrounded && (XCI.GetButton(XboxButton.A,controllerNumber)||Input.GetKeyDown(KeyCode.Space))) {
 			GetComponent<Rigidbody>().velocity = new Vector3(velocity.x, Mathf.Sqrt(2 * jumpHeight * gravity), velocity.z);
 			isGrounded = false;
 		}
@@ -160,16 +172,28 @@ public class PlayerController : MonoBehaviour {
 
 
 			rotationY +=  XCI.GetAxis(XboxAxis.RightStickY,controllerNumber) * mouseSensitivityY;
-			rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
+
+            /////
+            ///// Hacked in mouse movement for both players (at the same time)
+            /////
+            rotationY += Input.GetAxis("Mouse Y") * mouseSensitivityY;
+
+
+            rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
 
 			transform.localEulerAngles = new Vector3(0, rotationX, 0);
 			head.localEulerAngles = new Vector3(-rotationY,0,0);
-		}
-		else if (axes == RotationAxes.MouseX)
+
+            /////
+            ///// Hacked in mouse movement for both players (at the same time)
+            /////
+            transform.Rotate(0, Input.GetAxis("Mouse X") * mouseSensitivityX, 0);
+        }
+        else if (axes == RotationAxes.MouseX)
 		{
 			transform.Rotate(0, XCI.GetAxis(XboxAxis.RightStickX,controllerNumber) * mouseSensitivityX , 0);
-		}
-		else
+        }
+        else
 		{
 			rotationY +=  + XCI.GetAxis(XboxAxis.RightStickX,controllerNumber) * mouseSensitivityY  /3;
 			rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
